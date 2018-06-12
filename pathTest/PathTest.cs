@@ -4,6 +4,13 @@ using Microsoft.Xna.Framework.Input;
 
 namespace pathTest
 {
+    public static class Gfx
+    {
+        public static Texture2D floor;
+        public static Texture2D wall;
+        public static Texture2D path;
+        public static Texture2D door;
+    }
     /// <summary>
     /// This is the main type for your game.
     /// </summary>
@@ -12,10 +19,7 @@ namespace pathTest
         GraphicsDeviceManager graphics;
         View activeView;
         SpriteBatch spriteBatch;
-        private Texture2D floor;
-        private Texture2D wall;
-        private Texture2D path;
-        private Texture2D door;
+        Maze maze;
 
         public PathTest()
         {
@@ -33,8 +37,6 @@ namespace pathTest
         /// </summary>
         protected override void Initialize()
         {
-            activeView = new View(0, 0, 4, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight);
-
             base.Initialize();
         }
 
@@ -44,14 +46,16 @@ namespace pathTest
         /// </summary>
         protected override void LoadContent()
         {
-            // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
+            activeView = new View(1600, 1600, 4, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight, spriteBatch);
 
             // TODO: use this.Content to load your game content here
-            floor = Content.Load<Texture2D>("images/floor");
-            wall = Content.Load<Texture2D>("images/wall");
-            path = Content.Load<Texture2D>("images/path");
-            door = Content.Load<Texture2D>("images/door");
+            Gfx.floor = Content.Load<Texture2D>("images/floor");
+            Gfx.wall = Content.Load<Texture2D>("images/wall");
+            Gfx.path = Content.Load<Texture2D>("images/path");
+            Gfx.door = Content.Load<Texture2D>("images/door");
+
+            maze = new Maze(100, 100);
         }
 
         /// <summary>
@@ -85,7 +89,7 @@ namespace pathTest
             if (Mouse.GetState().RightButton == ButtonState.Pressed)
                 activeView.zoom = activeView.zoom * 0.95;
 
-            // TODO: Add your update logic here
+            maze.Update();
 
             base.Update(gameTime);
         }
@@ -98,10 +102,9 @@ namespace pathTest
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
-            spriteBatch.Begin();
+            spriteBatch.Begin(SpriteSortMode.Deferred, null, SamplerState.PointClamp);
 
-            activeView.Draw(spriteBatch, 0, 0, floor);
-            activeView.Draw(spriteBatch, 32, 0, floor);
+            maze.Draw(activeView);
 
             spriteBatch.End();
 
