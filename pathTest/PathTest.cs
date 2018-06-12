@@ -24,8 +24,8 @@ namespace pathTest
         public PathTest()
         {
             graphics = new GraphicsDeviceManager(this);
-            graphics.PreferredBackBufferWidth = 512;
-            graphics.PreferredBackBufferHeight = 512;
+            graphics.PreferredBackBufferWidth = 800;
+            graphics.PreferredBackBufferHeight = 800;
             Content.RootDirectory = "Content";
         }
 

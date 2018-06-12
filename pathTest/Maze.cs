@@ -50,24 +50,54 @@ namespace pathTest
             int dir = rng.Next(4);
             int revDir = (dir + 2) % 4;
             int way = 0;
-            int forward = 0;
 
             for (UInt32 i = 0; i < size; ++i)
                 map[i] = Bloc.empty;
+            if (map[GetCoord(dirmap[revDir](pos, 1))] == Bloc.empty)
+            {
+                drawable_elements.Add(new KeyValuePair<Vector2, Texture2D>(dirmap[revDir](pos, 1), Gfx.wall));
+                map[GetCoord(dirmap[revDir](pos, 1))] = Bloc.wall;
+            }
             for (int i = 0; i < 10; ++i)
             {
                 drawable_elements.Add(new KeyValuePair<Vector2, Texture2D>(pos, Gfx.floor));
                 map[GetCoord(pos)] = Bloc.floor;
                 revDir = (dir + 2) % 4;
                 way = rng.Next(3) - 1;
-                forward = rng.Next(2);
-                if (forward == 0)
-                    dir = ChangeDirection(dir, way);
+                dir = ChangeDirection(dir, way);
                 if (!DirectionIsValid(dir, pos))
                     if ((dir = CheckDirection(dir, revDir, pos)) == -1)
-                        return;
+                        if ((dir = SeekWay(pos)) == -1)
+                            return;
+                addWalls(dir, revDir, pos);
                 pos = dirmap[dir](pos, 1);
             }
+            drawable_elements.Add(new KeyValuePair<Vector2, Texture2D>(pos, Gfx.door));
+            pos = dirmap[(dir + 2) % 4](pos, 1);
+            addWalls(revDir, revDir, pos);
+        }
+
+        void addWalls(int dir, int revDir, Vector2 pos)
+        {
+            for (int i = 0; i < 4; ++i)
+                if (i != dir)
+                {
+                    if (map[GetCoord(dirmap[i](pos, 1))] == Bloc.empty)
+                    {
+                        drawable_elements.Add(new KeyValuePair<Vector2, Texture2D>(dirmap[i](pos, 1), Gfx.wall));
+                        map[GetCoord(dirmap[i](pos, 1))] = Bloc.wall;
+                    }
+                }
+        }
+
+        int SeekWay(Vector2 pos)
+        {
+            for (int i = 0; i < 4; ++i)
+            {
+                if (DirectionIsValid(i, pos))
+                    return (i);
+            }
+            return (-1);
         }
 
         int CheckDirection(int dir, int revDir, Vector2 pos)
@@ -76,7 +106,7 @@ namespace pathTest
 
             if (way == 0)
                 way = 3;
-            for (int i = 0; i < 4; i += way)
+            for (int i = 0; i < 5; i += way)
             {
                 dir = (dir + way + i) % 4;
                 if (dir == revDir)
@@ -119,16 +149,16 @@ namespace pathTest
         {
             dir += way;
             if (dir < 0)
-                dir = 3;
+                dir = dir - way + 3;
             dir = dir % 4;
             return (dir);
         }
 
         public void Update()
         {
-            if (Keyboard.GetState().IsKeyDown(Keys.Space))
+            if (Keyboard.GetState().IsKeyDown(Keys.A))
                 SpaceIsPressed = true;
-            if (Keyboard.GetState().IsKeyUp(Keys.Space))
+            if (Keyboard.GetState().IsKeyUp(Keys.A))
                 if (SpaceIsPressed)
                 {
                     drawable_elements.Clear();
