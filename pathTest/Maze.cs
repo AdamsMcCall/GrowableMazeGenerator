@@ -25,6 +25,7 @@ namespace pathTest
         Bloc[] map;
         Func<Vector2, UInt32, Vector2>[] dirmap = new Func<Vector2, UInt32, Vector2>[4];
         List<Vector2> doors = new List<Vector2>();
+        List<Vector2> walls = new List<Vector2>();
         List<KeyValuePair<Vector2, Texture2D>> drawable_elements = new List<KeyValuePair<Vector2, Texture2D>>();
         Random rng;
         bool SpaceIsPressed = false;
@@ -44,6 +45,54 @@ namespace pathTest
 
             GenerateBorders();
             GenerateFirstPath();
+            GenerateDoors();
+        }
+        
+        void GenerateDoors()
+        {
+            int dir;
+            int revDir;
+            Vector2 tmp;
+            int occurrence = 10;
+
+            foreach (Vector2 pos in walls)
+            {
+                dir = FindFloor(pos);
+                if (dir != -1)
+                {
+                    revDir = (dir + 2) % 4;
+                    tmp = dirmap[revDir](pos, 1);
+                    if (map[GetCoord(tmp)] == Bloc.empty && !IsNextToDoor(pos))
+                    {
+                        if (rng.Next(occurrence) == 0)
+                        {
+                            drawable_elements.Add(new KeyValuePair<Vector2, Texture2D>(pos, Gfx.door));
+                            map[GetCoord(pos)] = Bloc.door;
+                            doors.Add(pos);
+                            occurrence = 10;
+                        }
+                        if (occurrence > 1)
+                            --occurrence;
+                    }
+                }
+            }
+            walls.Clear();
+        }
+
+        bool IsNextToDoor(Vector2 pos)
+        {
+            for (int i = 0; i < 4; ++i)
+                if (map[GetCoord(dirmap[i](pos, 1))] == Bloc.door)
+                    return true;
+            return (false);
+        }
+
+        int FindFloor(Vector2 pos)
+        {
+            for (int i = 0; i < 4; ++i)
+                if (map[GetCoord(dirmap[i](pos, 1))] == Bloc.floor)
+                    return i;
+            return (-1);
         }
 
         void GenerateBorders()
@@ -116,6 +165,7 @@ namespace pathTest
                     {
                         drawable_elements.Add(new KeyValuePair<Vector2, Texture2D>(dirmap[i](pos, 1), Gfx.wall));
                         map[GetCoord(dirmap[i](pos, 1))] = Bloc.wall;
+                        walls.Add(dirmap[i](pos, 1));
                     }
                     //corners
                     if (prevDir != dir && prevDir != revDir)
@@ -207,6 +257,7 @@ namespace pathTest
                     drawable_elements.Clear();
                     GenerateBorders();
                     GenerateFirstPath();
+                    GenerateDoors();
                     SpaceIsPressed = false;
                 }
         }

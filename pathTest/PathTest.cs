@@ -55,7 +55,7 @@ namespace pathTest
             Gfx.path = Content.Load<Texture2D>("images/path");
             Gfx.door = Content.Load<Texture2D>("images/door");
 
-            maze = new Maze(1000, 1000);
+            maze = new Maze(100, 100);
         }
 
         /// <summary>
