@@ -48,17 +48,13 @@ namespace pathTest
         {
             Vector2 pos = new Vector2(size_x / 2, size_y / 2);
             int dir = rng.Next(4);
-            int revDir = (dir + 2) % 4;
+            int revDir = -1;
             int way = 0;
 
             for (UInt32 i = 0; i < size; ++i)
                 map[i] = Bloc.empty;
-            if (map[GetCoord(dirmap[revDir](pos, 1))] == Bloc.empty)
-            {
-                drawable_elements.Add(new KeyValuePair<Vector2, Texture2D>(dirmap[revDir](pos, 1), Gfx.wall));
-                map[GetCoord(dirmap[revDir](pos, 1))] = Bloc.wall;
-            }
-            for (int i = 0; i < 10; ++i)
+            addWalls(dir, revDir, pos);
+            for (int i = 0; i < 15; ++i)
             {
                 drawable_elements.Add(new KeyValuePair<Vector2, Texture2D>(pos, Gfx.floor));
                 map[GetCoord(pos)] = Bloc.floor;
@@ -79,15 +75,31 @@ namespace pathTest
 
         void addWalls(int dir, int revDir, Vector2 pos)
         {
+            int prevDir = 3;
+            Vector2 tmp;
+
             for (int i = 0; i < 4; ++i)
-                if (i != dir)
+            {
+                if (i != dir && i != revDir)
                 {
                     if (map[GetCoord(dirmap[i](pos, 1))] == Bloc.empty)
                     {
                         drawable_elements.Add(new KeyValuePair<Vector2, Texture2D>(dirmap[i](pos, 1), Gfx.wall));
                         map[GetCoord(dirmap[i](pos, 1))] = Bloc.wall;
                     }
+                    if (prevDir != dir && prevDir != revDir)
+                    {
+                        tmp = dirmap[prevDir](dirmap[i](pos, 1), 1);
+                        if (map[GetCoord(tmp)] == Bloc.empty)
+                        {
+                            drawable_elements.Add(new KeyValuePair<Vector2, Texture2D>(tmp, Gfx.wall));
+                            map[GetCoord(tmp)] = Bloc.wall;
+                        }
+                    }
                 }
+                prevDir = i;
+            }
+
         }
 
         int SeekWay(Vector2 pos)
