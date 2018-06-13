@@ -30,12 +30,15 @@ namespace pathTest
 
         public void Draw(int x, int y, Texture2D image)
         {
-            Console.WriteLine((x - this.x).ToString() + " " + (y - this.y).ToString());
-            sb.Draw(image, new Rectangle(
-                Convert.ToInt32((x - this.x) * zoom + width / 2),
-                Convert.ToInt32((y - this.y) * zoom + height / 2),
-                Convert.ToInt32(image.Width * zoom + 1),
-                Convert.ToInt32(image.Height * zoom + 1)), Color.White);
+            if (((x - this.x) * zoom + width / 2) <= width &&
+                ((y - this.y) * zoom + height / 2) <= height &&
+                ((x - this.x) * zoom + width / 2) + (image.Width * zoom + 1) >= 0 &&
+                ((y - this.y) * zoom + height / 2) + (image.Height * zoom + 1) >= 0)
+                sb.Draw(image, new Rectangle(
+                    Convert.ToInt32((x - this.x) * zoom + width / 2),
+                    Convert.ToInt32((y - this.y) * zoom + height / 2),
+                    Convert.ToInt32(image.Width * zoom + 1),
+                    Convert.ToInt32(image.Height * zoom + 1)), Color.White);
         }
     }
 }

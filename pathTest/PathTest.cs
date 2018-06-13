@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System;
 
 namespace pathTest
 {
@@ -47,15 +48,14 @@ namespace pathTest
         protected override void LoadContent()
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            activeView = new View(1600, 1600, 4, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight, spriteBatch);
+            activeView = new View(1600, 1600, 10, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight, spriteBatch);
 
-            // TODO: use this.Content to load your game content here
             Gfx.floor = Content.Load<Texture2D>("images/floor");
             Gfx.wall = Content.Load<Texture2D>("images/wall");
             Gfx.path = Content.Load<Texture2D>("images/path");
             Gfx.door = Content.Load<Texture2D>("images/door");
 
-            maze = new Maze(100, 100);
+            maze = new Maze(1000, 1000);
         }
 
         /// <summary>
@@ -77,18 +77,17 @@ namespace pathTest
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
             if (Keyboard.GetState().IsKeyDown(Keys.Left))
-                activeView.x -= activeView.speed;
+                activeView.x -= Convert.ToInt32(activeView.speed / activeView.zoom);
             if (Keyboard.GetState().IsKeyDown(Keys.Right))
-                activeView.x += activeView.speed;
+                activeView.x += Convert.ToInt32(activeView.speed / activeView.zoom);
             if (Keyboard.GetState().IsKeyDown(Keys.Up))
-                activeView.y -= activeView.speed;
+                activeView.y -= Convert.ToInt32(activeView.speed / activeView.zoom);
             if (Keyboard.GetState().IsKeyDown(Keys.Down))
-                activeView.y += activeView.speed;
+                activeView.y += Convert.ToInt32(activeView.speed / activeView.zoom);
             if (Mouse.GetState().LeftButton == ButtonState.Pressed)
                 activeView.zoom = activeView.zoom / 0.95;
             if (Mouse.GetState().RightButton == ButtonState.Pressed)
                 activeView.zoom = activeView.zoom * 0.95;
-
             maze.Update();
 
             base.Update(gameTime);

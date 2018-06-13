@@ -41,20 +41,36 @@ namespace pathTest
             dirmap[1] = GoRight;
             dirmap[2] = GoDown;
             dirmap[3] = GoLeft;
+
+            GenerateBorders();
             GenerateFirstPath();
         }
 
-        void GenerateFirstPath()
+        void GenerateBorders()
         {
-            Vector2 pos = new Vector2(size_x / 2, size_y / 2);
+            for (int j = 0; j < 2; ++j)
+            {
+                for (UInt32 i = 0; i < size_x; ++i)
+                {
+                    drawable_elements.Add(new KeyValuePair<Vector2, Texture2D>(new Vector2(i, (size_y - 1) * j), Gfx.wall));
+                    map[j * (size_y - 1) * i] = Bloc.wall;
+                }
+                for (UInt32 i = 1; i < size_y - 1; ++i)
+                {
+                    drawable_elements.Add(new KeyValuePair<Vector2, Texture2D>(new Vector2((size_x - 1) * j, i), Gfx.wall));
+                    map[i * size_x + (size_x - 1) * j] = Bloc.wall;
+                    //map[GetCoord(new Vector2((size_x - 1) * j, i))] = Bloc.wall;
+                }
+            }
+        }
+
+        void GeneratePath(Vector2 pos, int length)
+        {
             int dir = rng.Next(4);
             int revDir = -1;
             int way = 0;
 
-            for (UInt32 i = 0; i < size; ++i)
-                map[i] = Bloc.empty;
-            addWalls(dir, revDir, pos);
-            for (int i = 0; i < 15; ++i)
+            for (int i = 0; i < length; ++i)
             {
                 drawable_elements.Add(new KeyValuePair<Vector2, Texture2D>(pos, Gfx.floor));
                 map[GetCoord(pos)] = Bloc.floor;
@@ -73,6 +89,19 @@ namespace pathTest
             addWalls(revDir, revDir, pos);
         }
 
+        void GenerateFirstPath()
+        {
+            Vector2 pos = new Vector2(size_x / 2, size_y / 2);
+            int dir = rng.Next(4);
+            int revDir = -1;
+            int way = 0;
+
+            for (UInt32 i = 0; i < size; ++i)
+                map[i] = Bloc.empty;
+            addWalls(dir, revDir, pos);
+            GeneratePath(pos, 15);
+        }
+
         void addWalls(int dir, int revDir, Vector2 pos)
         {
             int prevDir = 3;
@@ -82,11 +111,13 @@ namespace pathTest
             {
                 if (i != dir && i != revDir)
                 {
+                    //walls
                     if (map[GetCoord(dirmap[i](pos, 1))] == Bloc.empty)
                     {
                         drawable_elements.Add(new KeyValuePair<Vector2, Texture2D>(dirmap[i](pos, 1), Gfx.wall));
                         map[GetCoord(dirmap[i](pos, 1))] = Bloc.wall;
                     }
+                    //corners
                     if (prevDir != dir && prevDir != revDir)
                     {
                         tmp = dirmap[prevDir](dirmap[i](pos, 1), 1);
@@ -174,6 +205,7 @@ namespace pathTest
                 if (SpaceIsPressed)
                 {
                     drawable_elements.Clear();
+                    GenerateBorders();
                     GenerateFirstPath();
                     SpaceIsPressed = false;
                 }
