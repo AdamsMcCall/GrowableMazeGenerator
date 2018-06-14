@@ -29,6 +29,7 @@ namespace pathTest
         List<KeyValuePair<Vector2, Texture2D>> drawable_elements = new List<KeyValuePair<Vector2, Texture2D>>();
         Random rng;
         bool SpaceIsPressed = false;
+        bool AIsPressed = false;
 
         public Maze(UInt32 size_x, UInt32 size_y)
         {
@@ -43,17 +44,23 @@ namespace pathTest
             dirmap[2] = GoDown;
             dirmap[3] = GoLeft;
 
+            InitMaze();
+        }
+
+        void InitMaze()
+        {
+            drawable_elements.Clear();
+            doors.Clear();
             GenerateBorders();
             GenerateFirstPath();
-            GenerateDoors();
         }
         
-        void GenerateDoors()
+        void GenerateDoors(int length)
         {
             int dir;
             int revDir;
             Vector2 tmp;
-            int occurrence = 10;
+            int occurrence = length;
 
             foreach (Vector2 pos in walls)
             {
@@ -69,7 +76,7 @@ namespace pathTest
                             drawable_elements.Add(new KeyValuePair<Vector2, Texture2D>(pos, Gfx.door));
                             map[GetCoord(pos)] = Bloc.door;
                             doors.Add(pos);
-                            occurrence = 10;
+                            occurrence = length;
                         }
                         if (occurrence > 1)
                             --occurrence;
@@ -108,7 +115,6 @@ namespace pathTest
                 {
                     drawable_elements.Add(new KeyValuePair<Vector2, Texture2D>(new Vector2((size_x - 1) * j, i), Gfx.wall));
                     map[i * size_x + (size_x - 1) * j] = Bloc.wall;
-                    //map[GetCoord(new Vector2((size_x - 1) * j, i))] = Bloc.wall;
                 }
             }
         }
@@ -136,6 +142,7 @@ namespace pathTest
             drawable_elements.Add(new KeyValuePair<Vector2, Texture2D>(pos, Gfx.door));
             pos = dirmap[(dir + 2) % 4](pos, 1);
             addWalls(revDir, revDir, pos);
+            GenerateDoors((length / 3) * 2);
         }
 
         void GenerateFirstPath()
@@ -143,7 +150,6 @@ namespace pathTest
             Vector2 pos = new Vector2(size_x / 2, size_y / 2);
             int dir = rng.Next(4);
             int revDir = -1;
-            int way = 0;
 
             for (UInt32 i = 0; i < size; ++i)
                 map[i] = Bloc.empty;
@@ -235,7 +241,17 @@ namespace pathTest
 
         UInt32 GetCoord(Vector2 pos)
         {
-            return (size_x * Convert.ToUInt32(pos.Y) + Convert.ToUInt32(pos.X));
+            UInt32 x, y;
+
+            if (pos.X < 0)
+                x = 0;
+            else
+                x = Convert.ToUInt32(pos.X);
+            if (pos.Y < 0)
+                y = 0;
+            else
+                y = Convert.ToUInt32(pos.Y);
+            return (size_x * Convert.ToUInt32(y) + Convert.ToUInt32(x));
         }
 
         int ChangeDirection(int dir, int way)
@@ -250,14 +266,21 @@ namespace pathTest
         public void Update()
         {
             if (Keyboard.GetState().IsKeyDown(Keys.A))
-                SpaceIsPressed = true;
+                AIsPressed = true;
             if (Keyboard.GetState().IsKeyUp(Keys.A))
+                if (AIsPressed)
+                {
+                    InitMaze();
+                    AIsPressed = false;
+                }
+            if (Keyboard.GetState().IsKeyDown(Keys.Space))
+                SpaceIsPressed = true;
+            if (Keyboard.GetState().IsKeyUp(Keys.Space))
                 if (SpaceIsPressed)
                 {
-                    drawable_elements.Clear();
-                    GenerateBorders();
-                    GenerateFirstPath();
-                    GenerateDoors();
+                    int nb = rng.Next(doors.Count);
+                    GeneratePath(doors[nb], rng.Next(8, 15));
+                    doors.RemoveAt(nb);
                     SpaceIsPressed = false;
                 }
         }
