@@ -48,14 +48,14 @@ namespace pathTest
         protected override void LoadContent()
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            activeView = new View(1600, 1600, 10, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight, spriteBatch);
+            activeView = new View(16000, 16000, 10, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight, spriteBatch);
 
             Gfx.floor = Content.Load<Texture2D>("images/floor");
             Gfx.wall = Content.Load<Texture2D>("images/wall");
             Gfx.path = Content.Load<Texture2D>("images/path");
             Gfx.door = Content.Load<Texture2D>("images/door");
 
-            maze = new Maze(100, 100);
+            maze = new Maze(1000, 1000);
         }
 
         /// <summary>

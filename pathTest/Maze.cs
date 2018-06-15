@@ -38,11 +38,12 @@ namespace pathTest
         Func<Vector2, UInt32, Vector2>[] dirmap = new Func<Vector2, UInt32, Vector2>[4];
         List<Door> doors = new List<Door>();
         List<Vector2> walls = new List<Vector2>();
-        List<KeyValuePair<Vector2, Texture2D>> drawable_elements = new List<KeyValuePair<Vector2, Texture2D>>();
         Random rng;
         bool SpaceIsPressed = false;
         bool AIsPressed = false;
         int iteration = 0;
+        Vector2 posMin;
+        Vector2 posMax;
 
         public Maze(UInt32 size_x, UInt32 size_y)
         {
@@ -63,9 +64,9 @@ namespace pathTest
         void InitMaze()
         {
             //clear all containers and reset every relevant attributes
-            drawable_elements.Clear();
             doors.Clear();
             iteration = 0;
+            posMin = new Vector2(size_x / 2, size_y / 2);
             //then regenerate stuff
             GenerateBorders();
             GenerateFirstPath();
@@ -91,13 +92,11 @@ namespace pathTest
                 if (nb_floor > 1)
                 {
                     map[GetCoord(door.pos)] = Bloc.floor;
-                    drawable_elements.Add(new KeyValuePair<Vector2, Texture2D>(door.pos, Gfx.floor));
                     Obsolete.Add(door);
                 }
                 else if (isBlocked)
                 {
                     map[GetCoord(door.pos)] = Bloc.wall;
-                    drawable_elements.Add(new KeyValuePair<Vector2, Texture2D>(door.pos, Gfx.wall));
                     Obsolete.Add(door);
                 }
             }
@@ -123,7 +122,6 @@ namespace pathTest
                     {
                         if (rng.Next(occurrence) == 0)
                         {
-                            drawable_elements.Add(new KeyValuePair<Vector2, Texture2D>(pos, Gfx.door));
                             map[GetCoord(pos)] = Bloc.door;
                             doors.Add(new Door(pos, iteration));
                             occurrence = length;
@@ -158,12 +156,10 @@ namespace pathTest
             {
                 for (UInt32 i = 0; i < size_x; ++i)
                 {
-                    drawable_elements.Add(new KeyValuePair<Vector2, Texture2D>(new Vector2(i, (size_y - 1) * j), Gfx.wall));
                     map[j * (size_y - 1) * i] = Bloc.wall;
                 }
                 for (UInt32 i = 1; i < size_y - 1; ++i)
                 {
-                    drawable_elements.Add(new KeyValuePair<Vector2, Texture2D>(new Vector2((size_x - 1) * j, i), Gfx.wall));
                     map[i * size_x + (size_x - 1) * j] = Bloc.wall;
                 }
             }
@@ -177,7 +173,6 @@ namespace pathTest
 
             for (int i = 0; i < length; ++i)
             {
-                drawable_elements.Add(new KeyValuePair<Vector2, Texture2D>(pos, Gfx.floor));
                 map[GetCoord(pos)] = Bloc.floor;
                 revDir = (dir + 2) % 4;
                 way = rng.Next(3) - 1;
@@ -189,7 +184,6 @@ namespace pathTest
                 addWalls(dir, revDir, pos);
                 pos = dirmap[dir](pos, 1);
             }
-            drawable_elements.Add(new KeyValuePair<Vector2, Texture2D>(pos, Gfx.door));
             pos = dirmap[(dir + 2) % 4](pos, 1);
             addWalls(revDir, revDir, pos);
             GenerateDoors((length / 3) * 2);
@@ -219,7 +213,6 @@ namespace pathTest
                     //walls
                     if (map[GetCoord(dirmap[i](pos, 1))] == Bloc.empty)
                     {
-                        drawable_elements.Add(new KeyValuePair<Vector2, Texture2D>(dirmap[i](pos, 1), Gfx.wall));
                         map[GetCoord(dirmap[i](pos, 1))] = Bloc.wall;
                         walls.Add(dirmap[i](pos, 1));
                     }
@@ -229,14 +222,27 @@ namespace pathTest
                         tmp = dirmap[prevDir](dirmap[i](pos, 1), 1);
                         if (map[GetCoord(tmp)] == Bloc.empty)
                         {
-                            drawable_elements.Add(new KeyValuePair<Vector2, Texture2D>(tmp, Gfx.wall));
                             map[GetCoord(tmp)] = Bloc.wall;
+                            if (tmp.X < posMin.X)
+                                posMin.X = tmp.X;
+                            UpdateDrawingDimensions(tmp);
                         }
                     }
                 }
                 prevDir = i;
             }
+        }
 
+        void UpdateDrawingDimensions(Vector2 pos)
+        {
+            if (pos.X < posMin.X)
+                posMin.X = pos.X;
+            if (pos.Y < posMin.Y)
+                posMin.Y = pos.Y;
+            if (pos.X > posMax.X)
+                posMax.X = pos.X;
+            if (pos.Y > posMax.Y)
+                posMax.Y = pos.Y;
         }
 
         int SeekWay(Vector2 pos)
@@ -338,9 +344,30 @@ namespace pathTest
 
         public void Draw(View view)
         {
-            foreach (KeyValuePair<Vector2, Texture2D> key in drawable_elements)
+            /*foreach (KeyValuePair<Vector2, Texture2D> key in drawable_elements)
             {
                 view.Draw(Convert.ToInt32(key.Key.X * 32), Convert.ToInt32(key.Key.Y * 32), key.Value);
+            }*/
+            Bloc content;
+
+            for (int j = Convert.ToInt32(posMin.Y); j <= posMax.Y; ++j)
+            {
+                for (int i = Convert.ToInt32(posMin.X); i <= posMax.X; ++i)
+                {
+                    content = map[j * size_y + i];
+                    switch (content)
+                    {
+                        case Bloc.door:
+                            view.Draw(i * 32, j * 32, Gfx.door);
+                            break;
+                        case Bloc.floor:
+                            view.Draw(i * 32, j * 32, Gfx.floor);
+                            break;
+                        case Bloc.wall:
+                            view.Draw(i * 32, j * 32, Gfx.wall);
+                            break;
+                    }
+                }
             }
         }
 
