@@ -17,6 +17,18 @@ namespace pathTest
         door
     }
 
+    class Door
+    {
+        public Vector2 pos;
+        public int nb;
+
+        public Door(Vector2 pos, int nb)
+        {
+            this.pos = pos;
+            this.nb = nb;
+        }
+    }
+
     public class Maze
     {
         UInt32 size_x;
@@ -24,12 +36,13 @@ namespace pathTest
         UInt32 size;
         Bloc[] map;
         Func<Vector2, UInt32, Vector2>[] dirmap = new Func<Vector2, UInt32, Vector2>[4];
-        List<Vector2> doors = new List<Vector2>();
+        List<Door> doors = new List<Door>();
         List<Vector2> walls = new List<Vector2>();
         List<KeyValuePair<Vector2, Texture2D>> drawable_elements = new List<KeyValuePair<Vector2, Texture2D>>();
         Random rng;
         bool SpaceIsPressed = false;
         bool AIsPressed = false;
+        int iteration = 0;
 
         public Maze(UInt32 size_x, UInt32 size_y)
         {
@@ -49,12 +62,49 @@ namespace pathTest
 
         void InitMaze()
         {
+            //clear all containers and reset every relevant attributes
             drawable_elements.Clear();
             doors.Clear();
+            iteration = 0;
+            //then regenerate stuff
             GenerateBorders();
             GenerateFirstPath();
         }
         
+        void UpdateDoors()
+        {
+            int nb_floor;
+            bool isBlocked = true;
+            List<Door> Obsolete = new List<Door>();
+
+            foreach (Door door in doors)
+            {
+                nb_floor = 0;
+                isBlocked = true;
+                for (int i = 0; i < 4; ++i)
+                {
+                    if (map[GetCoord(dirmap[i](door.pos, 1))] == Bloc.floor)
+                        ++nb_floor;
+                    if (map[GetCoord(dirmap[i](door.pos, 1))] == Bloc.empty)
+                        isBlocked = false;
+                }
+                if (nb_floor > 1)
+                {
+                    map[GetCoord(door.pos)] = Bloc.floor;
+                    drawable_elements.Add(new KeyValuePair<Vector2, Texture2D>(door.pos, Gfx.floor));
+                    Obsolete.Add(door);
+                }
+                else if (isBlocked)
+                {
+                    map[GetCoord(door.pos)] = Bloc.wall;
+                    drawable_elements.Add(new KeyValuePair<Vector2, Texture2D>(door.pos, Gfx.wall));
+                    Obsolete.Add(door);
+                }
+            }
+            foreach (Door door in Obsolete)
+                doors.Remove(door);
+        }
+
         void GenerateDoors(int length)
         {
             int dir;
@@ -75,7 +125,7 @@ namespace pathTest
                         {
                             drawable_elements.Add(new KeyValuePair<Vector2, Texture2D>(pos, Gfx.door));
                             map[GetCoord(pos)] = Bloc.door;
-                            doors.Add(pos);
+                            doors.Add(new Door(pos, iteration));
                             occurrence = length;
                         }
                         if (occurrence > 1)
@@ -279,8 +329,9 @@ namespace pathTest
                 if (SpaceIsPressed)
                 {
                     int nb = rng.Next(doors.Count);
-                    GeneratePath(doors[nb], rng.Next(8, 15));
+                    GeneratePath(doors[nb].pos, rng.Next(8, 15));
                     doors.RemoveAt(nb);
+                    UpdateDoors();
                     SpaceIsPressed = false;
                 }
         }
