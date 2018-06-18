@@ -44,6 +44,7 @@ namespace pathTest
         int iteration = 0;
         Vector2 posMin;
         Vector2 posMax;
+        Solver solver;
 
         public Maze(UInt32 size_x, UInt32 size_y)
         {
@@ -52,6 +53,7 @@ namespace pathTest
             this.size = size_x * size_y;
             map = new Bloc[size];
             rng = new Random();
+            solver = new Solver(this);
 
             dirmap[0] = GoUp;
             dirmap[1] = GoRight;
@@ -70,6 +72,7 @@ namespace pathTest
             //then regenerate stuff
             GenerateBorders();
             GenerateFirstPath();
+            solver.Solve();
         }
         
         void UpdateDoors()
@@ -170,9 +173,12 @@ namespace pathTest
             int dir = rng.Next(4);
             int revDir = -1;
             int way = 0;
+            bool isBreak = false;
 
+            solver.start = solver.finish;
             for (int i = 0; i < length; ++i)
             {
+                isBreak = true;
                 map[GetCoord(pos)] = Bloc.floor;
                 revDir = (dir + 2) % 4;
                 way = rng.Next(3) - 1;
@@ -180,13 +186,16 @@ namespace pathTest
                 if (!DirectionIsValid(dir, pos))
                     if ((dir = CheckDirection(dir, revDir, pos)) == -1)
                         if ((dir = SeekWay(pos)) == -1)
-                            return;
+                            break;
                 addWalls(dir, revDir, pos);
                 pos = dirmap[dir](pos, 1);
+                isBreak = false;
             }
-            pos = dirmap[(dir + 2) % 4](pos, 1);
+            if (!isBreak)
+                pos = dirmap[(dir + 2) % 4](pos, 1);
             addWalls(revDir, revDir, pos);
             GenerateDoors((length / 3) * 2);
+            solver.finish = pos;
             ++iteration;
         }
 
@@ -199,6 +208,10 @@ namespace pathTest
             for (UInt32 i = 0; i < size; ++i)
                 map[i] = Bloc.empty;
             addWalls(dir, revDir, pos);
+            //set the finish attribute first
+            //as the start attribute will be set
+            //equal to the finish attribute in GeneratePath()
+            solver.finish = pos;
             GeneratePath(pos, 15);
         }
 
@@ -358,6 +371,7 @@ namespace pathTest
                         GeneratePath(door.pos, rng.Next(8, 15));
                         doors.RemoveAt(nb);
                         UpdateDoors();
+                        solver.Solve();
                     }
                     SpaceIsPressed = false;
                 }
@@ -390,6 +404,7 @@ namespace pathTest
                     }
                 }
             }
+            solver.Draw(view);
         }
 
         Vector2 GoUp(Vector2 pos, UInt32 distance)

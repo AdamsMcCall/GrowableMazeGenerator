@@ -28,7 +28,7 @@ namespace pathTest
             this.sb = sb;
         }
 
-        public void Draw(int x, int y, Texture2D image)
+        public void Draw(float x, float y, Texture2D image)
         {
             if (((x - this.x) * zoom + width / 2) <= width &&
                 ((y - this.y) * zoom + height / 2) <= height &&
