@@ -187,6 +187,7 @@ namespace pathTest
             pos = dirmap[(dir + 2) % 4](pos, 1);
             addWalls(revDir, revDir, pos);
             GenerateDoors((length / 3) * 2);
+            ++iteration;
         }
 
         void GenerateFirstPath()
@@ -319,6 +320,22 @@ namespace pathTest
             return (dir);
         }
 
+        Door GetLowestDoor()
+        {
+            List<Door> list = new List<Door>();
+
+            for (int i = 0; i < 1000; ++i)
+            {
+                list = doors.FindAll(s => s.nb == i);
+                if (list.Count() != 0)
+                    break;
+            }
+            if (list.Count() != 0)
+                return (list[rng.Next(list.Count())]);
+            else
+                return (null);
+        }
+
         public void Update()
         {
             if (Keyboard.GetState().IsKeyDown(Keys.A))
@@ -334,10 +351,14 @@ namespace pathTest
             if (Keyboard.GetState().IsKeyUp(Keys.Space))
                 if (SpaceIsPressed)
                 {
-                    int nb = rng.Next(doors.Count);
-                    GeneratePath(doors[nb].pos, rng.Next(8, 15));
-                    doors.RemoveAt(nb);
-                    UpdateDoors();
+                    Door door = GetLowestDoor();
+                    if (door != null)
+                    {
+                        int nb = doors.FindIndex(s => s == door);
+                        GeneratePath(door.pos, rng.Next(8, 15));
+                        doors.RemoveAt(nb);
+                        UpdateDoors();
+                    }
                     SpaceIsPressed = false;
                 }
         }
