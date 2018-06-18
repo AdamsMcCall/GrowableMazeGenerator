@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace pathTest
 {
-    enum Bloc
+    public enum Bloc
     {
         empty,
         floor,
@@ -31,10 +31,10 @@ namespace pathTest
 
     public class Maze
     {
-        UInt32 size_x;
-        UInt32 size_y;
+        public UInt32 size_x;
+        public UInt32 size_y;
         UInt32 size;
-        Bloc[] map;
+        public Bloc[] map;
         Func<Vector2, UInt32, Vector2>[] dirmap = new Func<Vector2, UInt32, Vector2>[4];
         List<Door> doors = new List<Door>();
         List<Vector2> walls = new List<Vector2>();
