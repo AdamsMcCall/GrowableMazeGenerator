@@ -66,17 +66,8 @@ namespace pathTest
                         }
                     }
             }
-            /*if (diffusion.Exists(s => s.pos.X == finish.X && s.pos.Y == finish.Y) == false || diffusion.Count == 0)
-            {
-                if (diffusion.Count == 0)
-                    MessageBox.Show("diffusion.Count == 0");
-                else
-                    MessageBox.Show("else");
-                return (false);
-            }*/
             if (way == null)
                 return (false);
-            //way = diffusion.Find(s => s.pos.X == finish.X && s.pos.Y == finish.Y);
             for (Path p = way; way.prev != null; way = way.prev)
                 solution.Add(way.pos);
             solution.Add(finish);
